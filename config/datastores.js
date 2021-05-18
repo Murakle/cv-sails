@@ -31,6 +31,7 @@ module.exports.datastores = {
    ***************************************************************************/
 
   default: {
+    adapter: 'sails-mongo',
     /***************************************************************************
      *                                                                          *
      * Want to use a different database during development?                     *
