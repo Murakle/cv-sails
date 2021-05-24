@@ -21,7 +21,7 @@
 
 module.exports = {
 
-
+  hookTimeout: 200000,
   /**************************************************************************
    *                                                                         *
    * Tell Sails what database(s) it should use in production.                *
@@ -231,7 +231,7 @@ module.exports = {
      *                                                                          *
      ***************************************************************************/
     cookie: {
-      secure: true,
+      // secure: true,
       maxAge: 24 * 60 * 60 * 1000,  // 24 hours
     },
 

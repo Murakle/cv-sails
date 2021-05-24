@@ -12,27 +12,23 @@
 // const GitStats = require("../api/models/GitStats");
 
 module.exports.bootstrap = async function (done) {
-  const schedule = require("node-schedule");
-  const axios = require("axios").default;
-  const dotenv = require("dotenv");
+  const schedule = require('node-schedule');
+  const axios = require('axios').default;
+  const dotenv = require('dotenv');
   dotenv.config();
-  // let stats = new Map();
-  // let statsGL = new Map();
-  // let added = 0;
-  // let addedGL = 0;
-  // let lAmount = 0;
-  // let lAmountGL = 0;
-  // let finished = false;
+  let stats = new Map();
+  let added = 0;
+  let lAmount = -1;
+  let statsGL = new Map();
+  let addedGL = 0;
+  let lAmountGL = -1;
+  let finished = false;
   function updateGitLabStats() {
     var options = {
-      method: "GET",
-      url: process.env.GITLAB_URL + "?owned=true&membership=true",
-      // params: {
-      //   owned: true,
-      //   membership: true,
-      // },
+      method: 'GET',
+      url: process.env.GITLAB_URL + '?owned=true&membership=true',
       headers: {
-        Authorization: "Bearer " + process.env.GITLAB_OAUTH_TOKEN,
+        Authorization: 'Bearer ' + process.env.GITLAB_OAUTH_TOKEN,
       },
     };
     axios
@@ -40,9 +36,9 @@ module.exports.bootstrap = async function (done) {
       .then((response) => {
         lAmountGL = response.data.length;
         response.data.forEach((repo) => {
-          const urlLang = process.env.GITLAB_URL + "/" + repo.id + "/languages";
+          const urlLang = process.env.GITLAB_URL + '/' + repo.id + '/languages';
           const urlProj =
-            process.env.GITLAB_URL + "/" + repo.id + "?statistics=true";
+            process.env.GITLAB_URL + '/' + repo.id + '?statistics=true';
           getGLRepoStats(urlLang, urlProj);
         });
         return Promise.resolve();
@@ -51,6 +47,7 @@ module.exports.bootstrap = async function (done) {
         sails.log(err);
       });
   }
+
   function updateGitStats() {
     stats = new Map();
     added = 0;
@@ -62,10 +59,10 @@ module.exports.bootstrap = async function (done) {
     updateGitLabStats();
     // GitStats.destroy({});
     var options = {
-      method: "GET",
+      method: 'GET',
       url: process.env.GIT_URL + process.env.GIT_USERNAME,
       headers: {
-        Authorization: "token " + process.env.GIT_OAUTH_TOKEN,
+        Authorization: 'token ' + process.env.GIT_OAUTH_TOKEN,
       },
     };
     axios
@@ -79,6 +76,7 @@ module.exports.bootstrap = async function (done) {
       })
       .catch((err) => sails.log(err));
   }
+
   async function finish() {
     finished = true;
     await GitStats.destroy({});
@@ -90,31 +88,31 @@ module.exports.bootstrap = async function (done) {
     // sails.log(stats);
     // sails.log(finalStats);
 
-    await finalStats.forEach(async function (key, value) {
-      var createdRecord = await GitStats.create({
+    await finalStats.forEach((key, value) => {
+      GitStats.create({
         lang: value,
         amount: key,
       }).fetch();
     });
-    sails.log("GitHub updated");
+    sails.log('GitHub updated');
   }
 
   function getGLRepoStats(urlLang, urlProj) {
     var options = {
-      method: "GET",
+      method: 'GET',
       url: urlLang,
       headers: {
-        Authorization: "Bearer " + process.env.GITLAB_OAUTH_TOKEN,
+        Authorization: 'Bearer ' + process.env.GITLAB_OAUTH_TOKEN,
       },
     };
     axios
       .request(options)
       .then(function (response) {
         var options2 = {
-          method: "GET",
+          method: 'GET',
           url: urlProj,
           headers: {
-            Authorization: "Bearer " + process.env.GITLAB_OAUTH_TOKEN,
+            Authorization: 'Bearer ' + process.env.GITLAB_OAUTH_TOKEN,
           },
         };
         axios
@@ -129,48 +127,49 @@ module.exports.bootstrap = async function (done) {
               );
             });
           })
-          .then(function () {
+          .then(() => {
             addedGL++;
-            if (added == lAmount && addedGL == lAmountGL && !finished) {
+            if (added === lAmount && addedGL === lAmountGL && !finished) {
               finish();
               return Promise.resolve();
             }
           })
           .catch((err) => sails.log(err));
       })
-      .catch(function (error) {
-        sails.log(err);
-        return Promise.reject(error);
-      });
-  }
-  function getRepoStats(url) {
-    var options = {
-      method: "GET",
-      url: url,
-      headers: {
-        Authorization: "token " + process.env.GIT_OAUTH_TOKEN,
-      },
-    };
-    axios
-      .request(options)
-      .then(function (response) {
-        Object.entries(response.data).forEach(([lang, amount]) => {
-          stats.set(lang, (stats.has(lang) ? stats.get(lang) : 0) + amount);
-        });
-        added++;
-        if (added == lAmount && addedGL == lAmountGL && !finished) {
-          finish();
-          return Promise.resolve();
-        }
-      })
-      .catch(function (error) {
+      .catch((error) => {
+        sails.log(error);
         return Promise.reject(error);
       });
   }
 
-  await updateGitStats();
+  function getRepoStats(url) {
+    var options = {
+      method: 'GET',
+      url: url,
+      headers: {
+        Authorization: 'token ' + process.env.GIT_OAUTH_TOKEN,
+      },
+    };
+    axios
+      .request(options)
+      .then((response) => {
+        Object.entries(response.data).forEach(([lang, amount]) => {
+          stats.set(lang, (stats.has(lang) ? stats.get(lang) : 0) + amount);
+        });
+        added++;
+        if (added === lAmount && addedGL === lAmountGL && !finished) {
+          finish();
+          return Promise.resolve();
+        }
+      })
+      .catch((error) => {
+        return Promise.reject(error);
+      });
+  }
+
+  updateGitStats();
   // await updateGitLabStats();
-  schedule.scheduleJob("*/10 * * * *", function () {
+  schedule.scheduleJob('*/10 * * * *', () => {
     updateGitStats();
   });
   return done();
