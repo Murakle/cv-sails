@@ -193,6 +193,8 @@ module.exports = {
      * > (For a full list, see https://sailsjs.com/plugins/sessions)            *
      *                                                                          *
      ***************************************************************************/
+    adapter: 'connect-mongo',
+    collection: 'sessions',
     // adapter: '@sailshq/connect-redis',
     // url: 'redis://user:password@localhost:6379/databasenumber',
     //--------------------------------------------------------------------------
@@ -229,7 +231,7 @@ module.exports = {
      *                                                                          *
      ***************************************************************************/
     cookie: {
-      // secure: true,
+      secure: true,
       maxAge: 24 * 60 * 60 * 1000,  // 24 hours
     },
 
