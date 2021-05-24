@@ -23,6 +23,7 @@ module.exports.bootstrap = async function (done) {
   let addedGL = 0;
   let lAmountGL = -1;
   let finished = false;
+
   function updateGitLabStats() {
     var options = {
       method: 'GET',
@@ -88,8 +89,8 @@ module.exports.bootstrap = async function (done) {
     // sails.log(stats);
     // sails.log(finalStats);
 
-    await finalStats.forEach((key, value) => {
-      GitStats.create({
+    await finalStats.forEach(async (key, value) => {
+      await GitStats.create({
         lang: value,
         amount: key,
       }).fetch();
